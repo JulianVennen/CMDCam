@@ -28,14 +28,20 @@ runs {
     }
 }
 
+configurations {
+    runtimeClasspath.extendsFrom localRuntime
+}
+
 dependencies {
-    implementation "net.neoforged:neoforge:${forge_version}"
+    compileOnly "net.neoforged:neoforge:${forge_version}"
+    localRuntime "net.neoforged:neoforge:${forge_version}"
     
     implementation project(':CreativeCore')
     
     //minecraftLibrary "curse.maven:minema-resurrection-596719:4816846"
 }
 
+modProperties = [ '    displayTest="NONE"' ]
 modDependencies = [
     [ modId: "creativecore", type: "required", ordering: "NONE", side: "BOTH", versionRange: "[" + creativecore_version + ",)" ]
 ]

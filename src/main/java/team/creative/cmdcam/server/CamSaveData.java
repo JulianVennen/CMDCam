@@ -4,6 +4,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map.Entry;
 
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.HolderLookup.Provider;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.saveddata.SavedData;
 import team.creative.cmdcam.CMDCam;
@@ -18,7 +20,7 @@ public class CamSaveData extends SavedData {
     
     public CamSaveData() {}
     
-    public CamSaveData(CompoundTag nbt) {
+    public CamSaveData(CompoundTag nbt, HolderLookup.Provider provider) {
         for (String key : nbt.getAllKeys())
             try {
                 scenes.put(key, new CamScene(nbt.getCompound(key)));
@@ -50,7 +52,7 @@ public class CamSaveData extends SavedData {
     }
     
     @Override
-    public CompoundTag save(CompoundTag nbt) {
+    public CompoundTag save(CompoundTag nbt, Provider provider) {
         for (Entry<String, CamScene> entry : scenes.entrySet())
             nbt.put(entry.getKey(), entry.getValue().save(new CompoundTag()));
         return nbt;

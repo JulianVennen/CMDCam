@@ -26,7 +26,7 @@ public class CMDCamServer {
     public static void set(Level level, String name, CamScene scene) {
         CamSaveData data = ((ServerLevel) level).getDataStorage().get(FACTORY, CamSaveData.DATA_NAME);
         if (data == null) {
-            data = new CamSaveData(new CompoundTag());
+            data = new CamSaveData(new CompoundTag(), level.registryAccess());
             ((ServerLevel) level).getDataStorage().set(CamSaveData.DATA_NAME, data);
         }
         data.set(name, scene);
