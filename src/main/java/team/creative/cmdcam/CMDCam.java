@@ -20,9 +20,9 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
-import net.neoforged.fml.DistExecutor;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.neoforged.fml.loading.FMLLoader;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforge.registries.DeferredRegister;
@@ -55,13 +55,14 @@ public class CMDCam {
     public static final String MODID = "cmdcam";
     
     private static final Logger LOGGER = LogManager.getLogger(CMDCam.MODID);
-    public static final CreativeNetwork NETWORK = new CreativeNetwork(1, LOGGER, new ResourceLocation(CMDCam.MODID, "main"));
+    public static final CreativeNetwork NETWORK = new CreativeNetwork(1, LOGGER, ResourceLocation.tryBuild(CMDCam.MODID, "main"));
     public static final CMDCamConfig CONFIG = new CMDCamConfig();
     public static final DeferredRegister<ArgumentTypeInfo<?, ?>> COMMAND_ARGUMENT_TYPES = DeferredRegister.create(Registries.COMMAND_ARGUMENT_TYPE, MODID);
     
     public CMDCam(IEventBus bus) {
         bus.addListener(this::init);
-        DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> CMDCamClient.load(bus));
+        if (FMLLoader.getDist() == Dist.CLIENT)
+            CMDCamClient.load(bus);
         NeoForge.EVENT_BUS.addListener(this::commands);
         
         COMMAND_ARGUMENT_TYPES.register(bus);

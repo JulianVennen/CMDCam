@@ -3,7 +3,6 @@ package team.creative.cmdcam.client.mixin;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
-import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
@@ -16,13 +15,13 @@ import org.spongepowered.asm.mixin.Shadow;
 import com.google.common.collect.Lists;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
-import net.minecraft.advancements.critereon.MinMaxBounds;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.commands.arguments.selector.EntitySelector;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.flag.FeatureFlagSet;
 import net.minecraft.world.level.entity.EntityTypeTest;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
@@ -34,29 +33,10 @@ public abstract class EntitySelectorMixin implements EntitySelectorClient {
     
     @Shadow
     @Final
-    private int maxResults;
-    @Shadow
-    @Final
     private boolean includesEntities;
     @Shadow
     @Final
-    private boolean worldLimited;
-    @Shadow
-    @Final
-    private Predicate<Entity> predicate;
-    @Shadow
-    @Final
-    private MinMaxBounds.Doubles range;
-    @Shadow
-    @Final
     private Function<Vec3, Vec3> position;
-    @Shadow
-    @Final
-    @Nullable
-    private AABB aabb;
-    @Shadow
-    @Final
-    private BiConsumer<Vec3, List<? extends Entity>> order;
     @Shadow
     @Final
     private boolean currentEntity;
@@ -71,20 +51,20 @@ public abstract class EntitySelectorMixin implements EntitySelectorClient {
     @Shadow
     @Final
     private EntityTypeTest<Entity, ?> type;
-    @Shadow
-    @Final
-    private boolean usesSelector;
     
     @Shadow
     private void checkPermissions(CommandSourceStack source) throws CommandSyntaxException {}
     
     @Shadow
-    private Predicate<Entity> getPredicate(Vec3 vec) {
+    private Predicate<Entity> getPredicate(Vec3 vec, @Nullable AABB p_352908_, @Nullable FeatureFlagSet p_352911_) {
         return null;
     }
     
+    @Nullable
     @Shadow
-    public abstract boolean isWorldLimited();
+    private AABB getAbsoluteAabb(Vec3 p_352924_) {
+        return null;
+    }
     
     @Shadow
     private <T extends Entity> List<T> sortAndLimit(Vec3 vec, List<T> list) {
@@ -121,15 +101,16 @@ public abstract class EntitySelectorMixin implements EntitySelectorClient {
         }
         
         Vec3 vec3 = this.position.apply(source.getPosition());
-        Predicate<Entity> predicate = this.getPredicate(vec3);
+        AABB aabb = this.getAbsoluteAabb(vec3);
+        Predicate<Entity> predicate = this.getPredicate(vec3, aabb, this.currentEntity ? null : source.enabledFeatures());
         if (this.currentEntity)
             return (List<? extends Entity>) (source.getEntity() != null && predicate.test(source.getEntity()) ? Lists.newArrayList(source.getEntity()) : Collections.emptyList());
         List<Entity> list = Lists.newArrayList();
         
         ClientLevel level = (ClientLevel) source.getUnsidedLevel();
         
-        if (this.aabb != null)
-            list.addAll(level.getEntities(this.type, this.aabb.move(vec3), predicate));
+        if (aabb != null)
+            list.addAll(level.getEntities(this.type, aabb, predicate));
         else {
             for (Entity entity : level.entitiesForRendering()) {
                 if (predicate.test(entity))
@@ -168,7 +149,8 @@ public abstract class EntitySelectorMixin implements EntitySelectorClient {
         }
         
         Vec3 vec3 = this.position.apply(source.getPosition());
-        Predicate<Entity> predicate = this.getPredicate(vec3);
+        AABB aabb = this.getAbsoluteAabb(vec3);
+        Predicate<Entity> predicate = this.getPredicate(vec3, aabb, this.currentEntity ? null : source.enabledFeatures());
         if (this.currentEntity) {
             if (source.getEntity() instanceof Player player && predicate.test(player))
                 return Lists.newArrayList(player);

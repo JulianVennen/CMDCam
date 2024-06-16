@@ -8,6 +8,7 @@ import org.joml.Matrix4f;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.BufferBuilder;
+import com.mojang.blaze3d.vertex.BufferUploader;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.Tesselator;
@@ -135,6 +136,7 @@ public class CamEventHandlerClient {
         }
         
         renderingHand = false;
+        float partialTicks = event.getPartialTick().getGameTimeDeltaPartialTick(false);
         
         if (MC.player != null && MC.level != null) {
             if (!MC.isPaused()) {
@@ -144,11 +146,11 @@ public class CamEventHandlerClient {
                             CMDCamClient.getScene().togglePause();
                     }
                     
-                    CMDCamClient.renderTickPath(MC.level, event.getPartialTick());
+                    CMDCamClient.renderTickPath(MC.level, partialTicks);
                 } else {
-                    CMDCamClient.noTickPath(MC.level, event.getPartialTick());
-                    double timeFactor = MC.getDeltaFrameTime();
-                    double vanillaFov = fovExactVanilla(event.getPartialTick());
+                    CMDCamClient.noTickPath(MC.level, partialTicks);
+                    double timeFactor = event.getPartialTick().getRealtimeDeltaTicks();
+                    double vanillaFov = fovExactVanilla(partialTicks);
                     double currentFov = vanillaFov + fov;
                     double x = calculatePointInCurve(currentFov);
                     double multiplier = MC.player.isCrouching() ? 5 : 1;
@@ -304,11 +306,10 @@ public class CamEventHandlerClient {
         RenderSystem.setShader(GameRenderer::getPositionColorShader);
         
         Tesselator tessellator = Tesselator.getInstance();
-        BufferBuilder bufferbuilder = tessellator.getBuilder();
+        BufferBuilder bufferbuilder = tessellator.begin(Mode.DEBUG_LINE_STRIP, DefaultVertexFormat.POSITION_COLOR);
         
         RenderSystem.lineWidth(1.0F);
         Vec3d color = inter.color.toVec();
-        bufferbuilder.begin(Mode.DEBUG_LINE_STRIP, DefaultVertexFormat.POSITION_COLOR);
         CamPoints points = new CamPoints(scene.points);
         
         if (scene.lookTarget != null)
@@ -322,14 +323,14 @@ public class CamEventHandlerClient {
             Vec3d pos = interpolation.valueAt(i / steps);
             if (CMDCamClient.hasTargetMarker())
                 pos.add(CMDCamClient.getTargetMarker());
-            bufferbuilder.vertex(mat.last(), (float) pos.x, (float) pos.y, (float) pos.z).color((float) color.x, (float) color.y, (float) color.z, 1).endVertex();
+            bufferbuilder.addVertex(mat.last(), (float) pos.x, (float) pos.y, (float) pos.z).setColor((float) color.x, (float) color.y, (float) color.z, 1);
         }
         Vec3d last = scene.points.get(scene.points.size() - 1).copy();
         if (CMDCamClient.hasTargetMarker())
             last.add(CMDCamClient.getTargetMarker());
-        bufferbuilder.vertex(mat.last(), (float) last.x, (float) last.y, (float) last.z).color((float) color.x, (float) color.y, (float) color.z, 1).endVertex();
+        bufferbuilder.addVertex(mat.last(), (float) last.x, (float) last.y, (float) last.z).setColor((float) color.x, (float) color.y, (float) color.z, 1);
         
-        tessellator.end();
+        BufferUploader.drawWithShader(bufferbuilder.buildOrThrow());
         
         if (scene.lookTarget != null)
             scene.lookTarget.finish();
@@ -345,10 +346,10 @@ public class CamEventHandlerClient {
             1.0F);
         
         Matrix4f matrix4f = pMatrixStack.last().pose();
-        pBuffer.vertex(matrix4f, (float) origin.x, (float) origin.y, (float) origin.z).color(0, 0, 255, 255).normal(pMatrixStack.last(), (float) view.x, (float) view.y,
-            (float) view.z).endVertex();
-        pBuffer.vertex(matrix4f, (float) (origin.x + view.x * 2), (float) (origin.y + view.y * 2), (float) (origin.z + view.z * 2)).color(0, 0, 255, 255).normal(pMatrixStack
-                .last(), (float) view.x, (float) view.y, (float) view.z).endVertex();
+        pBuffer.addVertex(matrix4f, (float) origin.x, (float) origin.y, (float) origin.z).setColor(0, 0, 255, 255).setNormal(pMatrixStack.last(), (float) view.x, (float) view.y,
+            (float) view.z);
+        pBuffer.addVertex(matrix4f, (float) (origin.x + view.x * 2), (float) (origin.y + view.y * 2), (float) (origin.z + view.z * 2)).setColor(0, 0, 255, 255).setNormal(
+            pMatrixStack.last(), (float) view.x, (float) view.y, (float) view.z);
     }
     
     @SubscribeEvent
