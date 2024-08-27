@@ -97,9 +97,12 @@ public class CamRunStage {
         
         if (run.scene.posTarget != null) {
             targetPoint.set(point);
-            Vec3d vec = new Vec3d(run.scene.posTarget.position(level, partialTicks));
-            run.scene.mode.correctTargetPosition(vec);
-            targetPoint.add(vec);
+            var newPos = run.scene.posTarget.position(level, partialTicks);
+            if (newPos != null) {
+                Vec3d vec = new Vec3d(newPos);
+                run.scene.mode.correctTargetPosition(vec);
+                targetPoint.add(vec);
+            }
         }
         
         for (Entry<CamAttribute, CamFollow> entry : followAttributes.entrySet())
