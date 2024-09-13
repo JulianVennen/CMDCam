@@ -45,7 +45,11 @@ public class TargetArgumentBuilder extends ArgumentBuilder<CommandSourceStack, T
     
     @Override
     public CommandNode<CommandSourceStack> build() {
-        LiteralArgumentBuilder<CommandSourceStack> builder = Commands.literal(literal).then(Commands.literal("none").executes(x -> {
+        LiteralArgumentBuilder<CommandSourceStack> builder = Commands.literal(literal).executes(x -> {
+            x.getSource().sendSuccess(() -> Component.translatable(look ? "scene.output.look" : "scene.output.follow", look ? processor.getScene(x).lookTarget.print(x.getSource()
+                    .getUnsidedLevel()) : processor.getScene(x).posTarget.print(x.getSource().getUnsidedLevel())), false);
+            return 0;
+        }).then(Commands.literal("none").executes(x -> {
             try {
                 processor.setTarget(x, null, look);
             } catch (SceneException e) {

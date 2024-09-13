@@ -6,6 +6,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
@@ -53,6 +54,8 @@ public abstract class CamTarget {
     
     public void finish() {}
     
+    public abstract Component print(Level level);
+    
     public static class BlockTarget extends CamTarget {
         
         public BlockPos pos;
@@ -79,6 +82,11 @@ public abstract class CamTarget {
             if (array == null || array.length != 3)
                 throw new IllegalArgumentException("Invalid block target data=" + array);
             pos = new BlockPos(array[0], array[1], array[2]);
+        }
+        
+        @Override
+        public Component print(Level level) {
+            return Component.translatable("scene.output.pos", pos.getX(), pos.getY(), pos.getZ());
         }
         
     }
@@ -133,6 +141,21 @@ public abstract class CamTarget {
             uuid = UUID.fromString(nbt.getString("uuid"));
         }
         
+        @Override
+        public Component print(Level level) {
+            Entity resultEntity = null;
+            if (level instanceof ServerLevel)
+                resultEntity = ((ServerLevel) level).getEntities().get(uuid);
+            else
+                for (Entity entity : ((ClientLevel) level).entitiesForRendering())
+                    if (entity.getUUID().equals(uuid)) {
+                        resultEntity = entity;
+                        break;
+                    }
+            if (resultEntity != null)
+                return Component.translatable("scene.output.entity_found", resultEntity.getDisplayName(), uuid.toString());
+            return Component.translatable("scene.output.entity", uuid.toString());
+        }
     }
     
     public static class SelfTarget extends CamTarget {
@@ -149,6 +172,11 @@ public abstract class CamTarget {
         @OnlyIn(Dist.CLIENT)
         public Vec3d position(Level level, float partialTicks) {
             return new Vec3d(Minecraft.getInstance().player.getEyePosition(partialTicks));
+        }
+        
+        @Override
+        public Component print(Level level) {
+            return Component.translatable("scene.output.self");
         }
         
     }
@@ -191,6 +219,14 @@ public abstract class CamTarget {
         @Override
         protected void loadExtra(CompoundTag nbt) {
             uuid = UUID.fromString(nbt.getString("uuid"));
+        }
+        
+        @Override
+        public Component print(Level level) {
+            var player = level.getPlayerByUUID(uuid);
+            if (player != null)
+                return Component.translatable("scene.output.player_found", player.getDisplayName());
+            return Component.translatable("scene.output.player", uuid.toString());
         }
         
     }

@@ -76,7 +76,11 @@ public class CMDCamClient {
         })).then(Commands.literal("resume").executes(x -> {
             CMDCamClient.resume();
             return 0;
-        })).then(Commands.literal("show").then(Commands.argument("interpolation", InterpolationArgument.interpolationAll()).executes((x) -> {
+        })).then(Commands.literal("show").executes(x -> {
+            CamEventHandlerClient.SHOW_ACTIVE_INTERPOLATION = true;
+            x.getSource().sendSuccess(() -> Component.translatable("scene.interpolation.show_active"), false);
+            return 0;
+        }).then(Commands.argument("interpolation", InterpolationArgument.interpolationAll()).executes((x) -> {
             String interpolation = StringArgumentType.getString(x, "interpolation");
             if (!interpolation.equalsIgnoreCase("all")) {
                 CamInterpolation.REGISTRY.get(interpolation).isRenderingEnabled = true;
@@ -87,7 +91,11 @@ public class CMDCamClient {
                 x.getSource().sendSuccess(() -> Component.translatable("scene.interpolation.show_all"), false);
             }
             return 0;
-        }))).then(Commands.literal("hide").then(Commands.argument("interpolation", InterpolationArgument.interpolationAll()).executes((x) -> {
+        }))).then(Commands.literal("hide").executes(x -> {
+            CamEventHandlerClient.SHOW_ACTIVE_INTERPOLATION = false;
+            x.getSource().sendSuccess(() -> Component.translatable("scene.interpolation.hide_active"), false);
+            return 0;
+        }).then(Commands.argument("interpolation", InterpolationArgument.interpolationAll()).executes((x) -> {
             String interpolation = StringArgumentType.getString(x, "interpolation");
             if (!interpolation.equalsIgnoreCase("all")) {
                 CamInterpolation.REGISTRY.get(interpolation).isRenderingEnabled = false;
@@ -96,6 +104,7 @@ public class CMDCamClient {
                 for (CamInterpolation movement : CamInterpolation.REGISTRY.values())
                     movement.isRenderingEnabled = false;
                 x.getSource().sendSuccess(() -> Component.translatable("scene.interpolation.hide_all"), false);
+                CamEventHandlerClient.SHOW_ACTIVE_INTERPOLATION = false;
             }
             return 0;
         }))).then(Commands.literal("list").executes((x) -> {

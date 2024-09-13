@@ -1,5 +1,7 @@
 package team.creative.cmdcam.common.math.interpolation;
 
+import net.minecraft.network.chat.Component;
+
 public enum CamPitchMode {
     
     NO_FIX,
@@ -19,6 +21,10 @@ public enum CamPitchMode {
             if (name.equals(NAMES[i]))
                 return values()[i];
         throw new IllegalArgumentException(name);
+    }
+    
+    public Component title() {
+        return Component.translatable("cam.pitch_mode." + name().toLowerCase());
     }
     
 }

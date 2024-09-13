@@ -15,6 +15,43 @@ import net.minecraft.network.chat.Component;
 
 public class DurationArgument implements ArgumentType<Long> {
     
+    public static final long SECOND_FACTOR = 1000;
+    public static final long MINUTE_FACTOR = SECOND_FACTOR * 60;
+    public static final long HOUR_FACTOR = MINUTE_FACTOR * 60;
+    public static final long DAY_FACTOR = HOUR_FACTOR * 24;
+    
+    public static String printDuration(long duration) {
+        StringBuilder output = new StringBuilder();
+        long days = duration / DAY_FACTOR;
+        if (days > 0) {
+            output.append(" " + days + "d");
+            duration -= days * DAY_FACTOR;
+        }
+        
+        long hours = duration / HOUR_FACTOR;
+        if (hours > 0) {
+            output.append(" " + hours + "h");
+            duration -= hours * HOUR_FACTOR;
+        }
+        
+        long minutes = duration / MINUTE_FACTOR;
+        if (minutes > 0) {
+            output.append(" " + minutes + "m");
+            duration -= minutes * MINUTE_FACTOR;
+        }
+        
+        long seconds = duration / SECOND_FACTOR;
+        if (seconds > 0) {
+            output.append(" " + seconds + "s");
+            duration -= seconds * SECOND_FACTOR;
+        }
+        
+        if (duration > 0)
+            output.append(" " + duration + "ms");
+        
+        return output.substring(1); // Remove first space
+    }
+    
     public static final List<String> EXAMPLES = Arrays.asList(new String[] { "10s", "30s", "1m", "500ms" });
     
     public static DurationArgument duration() {
@@ -30,21 +67,21 @@ public class DurationArgument implements ArgumentType<Long> {
         final int start = reader.getCursor();
         long time = reader.readLong();
         String type = reader.readString();
-        int factor = 0;
+        long factor = 0;
         if (type.equalsIgnoreCase("ms"))
             factor = 1;
         else if (type.equalsIgnoreCase("s"))
-            factor = 1000;
+            factor = SECOND_FACTOR;
         else if (type.equalsIgnoreCase("m"))
-            factor = 1000 * 60;
+            factor = MINUTE_FACTOR;
         else if (type.equalsIgnoreCase("h"))
-            factor = 1000 * 60 * 60;
+            factor = HOUR_FACTOR;
         else if (type.equalsIgnoreCase("d"))
-            factor = 1000 * 60 * 60 * 24;
+            factor = DAY_FACTOR;
         else {
             reader.setCursor(start);
-            throw new CommandSyntaxException(new SimpleCommandExceptionType(new LiteralMessage("Invalid time format try out 10s (for 10 seconds)")), Component
-                    .translatable("invalid_time_format"));
+            throw new CommandSyntaxException(new SimpleCommandExceptionType(new LiteralMessage("Invalid time format try out 10s (for 10 seconds)")), Component.translatable(
+                "invalid_time_format"));
         }
         
         return time * factor;

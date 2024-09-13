@@ -63,6 +63,8 @@ public class CamEventHandlerClient {
     
     public static Entity camera = null;
     
+    public static boolean SHOW_ACTIVE_INTERPOLATION = false;
+    
     private static double fov = 0;
     private static float roll = 0;
     private static Consumer<CamTarget> selectingTarget = null;
@@ -252,7 +254,7 @@ public class CamEventHandlerClient {
         
         boolean shouldRender = false;
         for (CamInterpolation movement : CamInterpolation.REGISTRY.values())
-            if (movement.isRenderingEnabled) {
+            if (movement.isRenderingEnabled || (SHOW_ACTIVE_INTERPOLATION && movement == CMDCamClient.getConfigScene().interpolation)) {
                 shouldRender = true;
                 break;
             }
@@ -280,7 +282,7 @@ public class CamEventHandlerClient {
                 //mat.translate(CMDCamClient.getTargetMarker().x, CMDCamClient.getTargetMarker().y, CMDCamClient.getTargetMarker().z);
                 CamScene scene = CMDCamClient.createScene();
                 for (CamInterpolation movement : CamInterpolation.REGISTRY.values())
-                    if (movement.isRenderingEnabled)
+                    if (movement.isRenderingEnabled || (SHOW_ACTIVE_INTERPOLATION && movement == CMDCamClient.getConfigScene().interpolation))
                         renderPath(pose, movement, scene);
                     
                 pose.popPose();

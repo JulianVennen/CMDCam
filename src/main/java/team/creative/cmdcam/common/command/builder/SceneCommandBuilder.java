@@ -63,21 +63,33 @@ public class SceneCommandBuilder {
             return 0;
         })));
         
-        origin.then(Commands.literal("duration").then(Commands.argument("duration", DurationArgument.duration()).executes(x -> {
+        origin.then(Commands.literal("duration").executes(x -> {
+            x.getSource().sendSuccess(() -> Component.translatable("scene.output.duration", DurationArgument.printDuration(processor.getScene(x).duration)), false);
+            return 0;
+        }).then(Commands.argument("duration", DurationArgument.duration()).executes(x -> {
             long duration = DurationArgument.getDuration(x, "duration");
             if (duration > 0)
                 processor.getScene(x).duration = duration;
             processor.markDirty(x);
-            x.getSource().sendSuccess(() -> Component.translatable("scene.duration", duration), false);
+            x.getSource().sendSuccess(() -> Component.translatable("scene.duration", DurationArgument.printDuration(duration)), false);
             return 0;
         })));
         
-        origin.then(Commands.literal("loops").then(Commands.argument("loop", IntegerArgumentType.integer(-1)).executes(x -> {
+        origin.then(Commands.literal("loops").executes(x -> {
+            int loop = processor.getScene(x).loop;
+            if (loop == 0)
+                x.getSource().sendSuccess(() -> Component.translatable("scene.output.no_loop"), false);
+            else if (loop < 0)
+                x.getSource().sendSuccess(() -> Component.translatable("scene.output.endless"), false);
+            else
+                x.getSource().sendSuccess(() -> Component.translatable("scene.output.loops", loop), false);
+            return 0;
+        }).then(Commands.argument("loop", IntegerArgumentType.integer(-1)).executes(x -> {
             int loop = IntegerArgumentType.getInteger(x, "loop");
             processor.getScene(x).loop = loop;
             processor.markDirty(x);
             if (loop == 0)
-                x.getSource().sendSuccess(() -> Component.translatable("scene.add", processor.getScene(x).points.size()), false);
+                x.getSource().sendSuccess(() -> Component.translatable("scene.loop", processor.getScene(x).points.size()), false);
             else if (loop < 0)
                 x.getSource().sendSuccess(() -> Component.translatable("scene.loops.endless"), false);
             else
@@ -104,8 +116,12 @@ public class SceneCommandBuilder {
         else
             origin.then(tpO);
         
-        origin.then(Commands.literal("mode").then(Commands.argument("mode", CamModeArgument.mode()).executes(x -> {
+        origin.then(Commands.literal("mode").executes(x -> {
+            x.getSource().sendSuccess(() -> Component.translatable("scene.output.mode", processor.getScene(x).mode.title()), false);
+            return 0;
+        }).then(Commands.argument("mode", CamModeArgument.mode()).executes(x -> {
             processor.getScene(x).setMode(StringArgumentType.getString(x, "mode"));
+            x.getSource().sendSuccess(() -> Component.translatable("scene.mode", processor.getScene(x).mode.title()), false);
             return 0;
         })));
         
@@ -115,15 +131,22 @@ public class SceneCommandBuilder {
         origin.then(new FollowArgumentBuilder(CamAttribute.PITCH, processor)).then(new FollowArgumentBuilder(CamAttribute.YAW, processor)).then(
             new FollowArgumentBuilder(CamAttribute.POSITION, processor));
         
-        origin.then(Commands.literal("interpolation").then(Commands.argument("interpolation", InterpolationArgument.interpolation()).executes((x) -> {
+        origin.then(Commands.literal("interpolation").executes((x) -> {
+            x.getSource().sendSuccess(() -> Component.translatable("scene.output.interpolation", processor.getScene(x).interpolation.title()), false);
+            return 0;
+        }).then(Commands.argument("interpolation", InterpolationArgument.interpolation()).executes((x) -> {
             String interpolation = StringArgumentType.getString(x, "interpolation");
             processor.getScene(x).interpolation = CamInterpolation.REGISTRY.get(interpolation);
             processor.markDirty(x);
-            x.getSource().sendSuccess(() -> Component.translatable("scene.interpolation", interpolation), false);
+            x.getSource().sendSuccess(() -> Component.translatable("scene.interpolation", processor.getScene(x).interpolation.title()), false);
             return 0;
         })));
         
-        origin.then(Commands.literal("smooth_start").then(Commands.argument("value", BoolArgumentType.bool()).executes((x) -> {
+        origin.then(Commands.literal("smooth_start").executes((x) -> {
+            x.getSource().sendSuccess(() -> Component.translatable("scene.output.smooth_beginning", processor.getScene(x).smoothBeginning ? Component.translatable(
+                "cam.enabled") : Component.translatable("cam.disabled")), false);
+            return 0;
+        }).then(Commands.argument("value", BoolArgumentType.bool()).executes((x) -> {
             boolean value = BoolArgumentType.getBool(x, "value");
             processor.getScene(x).smoothBeginning = value;
             processor.markDirty(x);
@@ -131,7 +154,10 @@ public class SceneCommandBuilder {
             return 0;
         })));
         
-        origin.then(Commands.literal("spinning_fix").then(Commands.argument("mode", CamPitchModeArgument.pitchMode()).executes((x) -> {
+        origin.then(Commands.literal("spinning_fix").executes((x) -> {
+            x.getSource().sendSuccess(() -> Component.translatable("scene.output.pitch_mode", processor.getScene(x).pitchMode.title()), false);
+            return 0;
+        }).then(Commands.argument("mode", CamPitchModeArgument.pitchMode()).executes((x) -> {
             CamPitchMode mode = CamPitchModeArgument.getMode(x, "mode");
             processor.getScene(x).pitchMode = mode;
             processor.markDirty(x);
@@ -139,7 +165,11 @@ public class SceneCommandBuilder {
             return 0;
         })));
         
-        origin.then(Commands.literal("distance_timing").then(Commands.argument("value", BoolArgumentType.bool()).executes((x) -> {
+        origin.then(Commands.literal("distance_timing").executes((x) -> {
+            x.getSource().sendSuccess(() -> Component.translatable("scene.output.distance_timing", processor.getScene(x).distanceBasedTiming ? Component.translatable(
+                "cam.enabled") : Component.translatable("cam.disabled")), false);
+            return 0;
+        }).then(Commands.argument("value", BoolArgumentType.bool()).executes((x) -> {
             boolean value = BoolArgumentType.getBool(x, "value");
             processor.getScene(x).distanceBasedTiming = value;
             processor.markDirty(x);

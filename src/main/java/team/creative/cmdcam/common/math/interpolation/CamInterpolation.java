@@ -2,6 +2,7 @@ package team.creative.cmdcam.common.math.interpolation;
 
 import java.util.List;
 
+import net.minecraft.network.chat.Component;
 import team.creative.cmdcam.common.scene.CamScene;
 import team.creative.cmdcam.common.scene.attribute.CamAttribute;
 import team.creative.creativecore.common.util.math.interpolation.Interpolation;
@@ -29,6 +30,10 @@ public abstract class CamInterpolation {
     
     public CamInterpolation(Color color) {
         this.color = color;
+    }
+    
+    public Component title() {
+        return Component.translatable("cam.interpolation." + REGISTRY.getId(this));
     }
     
     public abstract <T extends VecNd> Interpolation<T> create(double[] times, CamScene scene, T before, List<T> points, T after, CamAttribute<T> attribute);

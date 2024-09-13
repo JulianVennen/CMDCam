@@ -1,5 +1,6 @@
 package team.creative.cmdcam.common.scene.mode;
 
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.neoforged.api.distmarker.Dist;
@@ -24,6 +25,10 @@ public abstract class CamMode {
     
     public CamMode(CamScene scene) {
         this.scene = scene;
+    }
+    
+    public Component title() {
+        return Component.translatable("cam.mode." + REGISTRY.getId(this));
     }
     
     @OnlyIn(Dist.CLIENT)
