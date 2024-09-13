@@ -6,6 +6,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import net.minecraft.util.Mth;
+import team.creative.cmdcam.common.math.interpolation.CamInterpolation;
 import team.creative.cmdcam.common.math.interpolation.CamPitchMode;
 import team.creative.cmdcam.common.scene.CamScene;
 import team.creative.cmdcam.common.scene.attribute.CamAttribute;
@@ -114,12 +115,11 @@ public class CamPoints implements Iterable<CamPoint> {
         return distance;
     }
     
-    public <T extends VecNd> Interpolation<T> interpolate(double[] times, CamScene scene, CamAttribute<T> attribute) {
+    public <T extends VecNd> Interpolation<T> interpolate(double[] times, CamScene scene, CamInterpolation interpolation, CamAttribute<T> attribute) {
         List vecs = new ArrayList(content.size());
         for (CamPoint point : content)
             vecs.add(attribute.get(point));
-        Interpolation<T> inter = scene.interpolation
-                .create(times, scene, before != null ? attribute.get(before) : null, vecs, after != null ? attribute.get(after) : null, attribute);
+        Interpolation<T> inter = interpolation.create(times, scene, before != null ? attribute.get(before) : null, vecs, after != null ? attribute.get(after) : null, attribute);
         return inter;
     }
     
@@ -140,7 +140,7 @@ public class CamPoints implements Iterable<CamPoint> {
             return times;
         
         if (scene.distanceBasedTiming) {
-            Interpolation<Vec3d> inter = interpolate(times, scene, CamAttribute.POSITION);
+            Interpolation<Vec3d> inter = interpolate(times, scene, scene.interpolation, CamAttribute.POSITION);
             double[] data = inter.estimateDistance();
             double totalDistance = data[0];
             

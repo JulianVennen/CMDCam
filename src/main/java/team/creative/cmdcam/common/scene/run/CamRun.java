@@ -11,6 +11,7 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import team.creative.cmdcam.client.CMDCamClient;
 import team.creative.cmdcam.client.SceneException;
+import team.creative.cmdcam.common.math.interpolation.CamInterpolation;
 import team.creative.cmdcam.common.math.interpolation.CamPitchMode;
 import team.creative.cmdcam.common.math.point.CamPoint;
 import team.creative.cmdcam.common.math.point.CamPoints;
@@ -52,7 +53,7 @@ public class CamRun {
             points.add(scene.points.get(0).copy());
             points.after(scene.points.get(0).copy());
             points.fixSpinning(CamPitchMode.FIX);
-            stages.add(new CamRunStage(this, (long) Mth.clampedLerp(points.estimateLength() / 10, 1000, 20000), 0, points));
+            stages.add(new CamRunStage(this, CamInterpolation.HERMITE, (long) Mth.clampedLerp(points.estimateLength() / 10, 1000, 20000), 0, points));
         }
         
         { // First sequence
@@ -65,7 +66,7 @@ public class CamRun {
             
             points.fixSpinning(scene.pitchMode);
             
-            stages.add(new CamRunStage(this, scene.duration, 0, points) {
+            stages.add(new CamRunStage(this, scene.interpolation, scene.duration, 0, points) {
                 
                 @Override
                 public void start() {
@@ -86,7 +87,7 @@ public class CamRun {
             
             points.fixSpinning(scene.pitchMode);
             
-            stages.add(new CamRunStage(this, scene.duration, scene.loop > 0 ? scene.loop - 1 : scene.loop, points));
+            stages.add(new CamRunStage(this, scene.interpolation, scene.duration, scene.loop > 0 ? scene.loop - 1 : scene.loop, points));
         }
         
         if (scene.loop > 0) { // end loop
@@ -96,7 +97,7 @@ public class CamRun {
             
             points.fixSpinning(scene.pitchMode);
             
-            stages.add(new CamRunStage(this, scene.duration, 0, points));
+            stages.add(new CamRunStage(this, scene.interpolation, scene.duration, 0, points));
         }
         
         this.currentStage = 0;

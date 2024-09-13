@@ -9,6 +9,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
 import team.creative.cmdcam.common.math.follow.CamFollow;
 import team.creative.cmdcam.common.math.follow.CamFollowConfig;
+import team.creative.cmdcam.common.math.interpolation.CamInterpolation;
 import team.creative.cmdcam.common.math.point.CamPoint;
 import team.creative.cmdcam.common.math.point.CamPoints;
 import team.creative.cmdcam.common.scene.attribute.CamAttribute;
@@ -26,7 +27,7 @@ public class CamRunStage {
     private HashMap<CamAttribute, Interpolation> attributes = new HashMap<>();
     private HashMap<CamAttribute, CamFollow> followAttributes;
     
-    public CamRunStage(CamRun run, long duration, int loops, CamPoints points) {
+    public CamRunStage(CamRun run, CamInterpolation inter, long duration, int loops, CamPoints points) {
         this.run = run;
         this.duration = duration;
         this.loops = loops;
@@ -38,7 +39,7 @@ public class CamRunStage {
             List vecs = new ArrayList(points.size());
             for (CamPoint point : points)
                 vecs.add(toStore[i].get(point));
-            attributes.put(toStore[i], points.interpolate(times, run.scene, toStore[i]));
+            attributes.put(toStore[i], points.interpolate(times, run.scene, inter, toStore[i]));
         }
         
     }
