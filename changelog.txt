@@ -1,3 +1,9 @@
+2.2.0
+Added commands to get current settings of scene
+Added missing translations
+Fixed circular interpolation rendering incorrect end position
+Fixed circular interpolation smooth start
+
 2.1.2
 Fixed crash when follow target dies
 
